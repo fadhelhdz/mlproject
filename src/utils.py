@@ -5,6 +5,7 @@ import dill
 import numpy as np
 import pandas as pd
 from sklearn.metrics import r2_score
+from sklearn.model_selection import GridSearchCV
 
 from src.exception import CustomExeption
 
@@ -20,12 +21,23 @@ def save_object(file_path, obj):
     except Exception as e:
         raise CustomExeption(e, sys)
     
-def evaluate_models(X_train, y_train, X_test, y_test, models):
+def evaluate_models(X_train, y_train, X_test, y_test, models, params):
     try:
         report = {}
 
         for i in range(len(list(models))):
             model = list(models.values())[i]
+            param = params[list(models.keys())[i]]
+
+            gs = GridSearchCV(model, param, cv=3)
+            gs.fit(X_train, y_train)
+
+            if np.any(np.isnan(gs.cv_results_['mean_test_score'])):
+                print(f"Non-finite test scores encountered for model: {list(models.values())[i]}")
+                print(f"Parameters causing non-finite scores: {gs.cv_results_['params'][np.isnan(gs.cv_results_['mean_test_score'])]}")
+                continue
+
+            model.set_params(**gs.best_params_)
 
             model.fit(X_train, y_train)
 
