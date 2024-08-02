@@ -125,7 +125,9 @@ celerybeat.pid
 .artifacts
 .env
 .venv
-artifacts/
+artifacts/*
+!artifacts/model.pkl
+!artifacts/preprocessor.pkl
 env/
 venv/
 ENV/
